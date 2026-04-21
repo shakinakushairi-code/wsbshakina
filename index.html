@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSB Client Suite — Process Flow · Faraid Calculator · Plans &amp; Packages</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Agreed brand palette */
+    --gold: #B8952A;
+    --gold-light: #F5E9C4;
+    --gold-mid: #D4A843;
+    --dark: #1A1A1A;
+    --dark2: #2D2D2D;
+    --teal: #1A6B5C;
+    --teal-light: #E0F0EC;
+    --purple: #4A3878;
+    --purple-light: #EDE8F5;
+    --coral: #8B3A2A;
+    --coral-light: #F5E8E5;
+    --blue: #1A4A7A;
+    --blue-light: #E5EEF8;
+    --amber: #7A5A10;
+    --amber-light: #FDF3DC;
+    --gray: #F7F6F2;
+    --border: #E8E4D8;
+    --bg: #FAF8F3;
+    --text: #2D2D2D;
+    --muted: #6B6660;
+    /* Subtle Wasiyyah + Kausar accents */
+    --wsb-blue: #1A3A8F;
+    --wsb-green: #2E9E4F;
+    --kausar-gold: #F5A800;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── MASTER TOP BAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 200;
+    background: var(--dark);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  }
+  .topbar::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 160px; height: 3px;
+    background: linear-gradient(90deg, var(--wsb-blue) 0%, var(--wsb-green) 50%, var(--kausar-gold) 100%);
+  }
+  .brand-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .brand-mark span { color: var(--gold); }
+  .brand-tag {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 2px;
+  }
+
+  .lang-bar { display: flex; align-items: center; gap: 8px; }
+  .lang-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #888; }
+  .lang-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 600;
+    padding: 5px 14px; border-radius: 100px;
+    border: 1.5px solid rgba(255,255,255,.2);
+    cursor: pointer; transition: all .2s;
+    background: transparent; color: #fff;
+  }
+  .lang-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .lang-btn:hover:not(.active) { background: rgba(255,255,255,.08); }
+
+  [data-lang="en"] .bm, [data-lang="ms"] .en { display: none; }
+
+  /* ── TAB NAV ── */
+  .tab-nav {
+    position: sticky; top: 58px; z-index: 150;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex: 1;
+    min-width: 180px;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+    border-bottom: 3px solid transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .tab-btn .tab-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+  .tab-btn .tab-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--muted);
+    font-style: italic;
+    letter-spacing: .2px;
+  }
+  .tab-btn:hover { background: var(--gray); color: var(--dark); }
+  .tab-btn.active {
+    color: var(--dark);
+    border-bottom-color: var(--gold);
+    background: #fff;
+  }
+  .tab-btn.active .tab-sub { color: var(--gold); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* ── FOOTER (shared) ── */
+  .master-footer {
+    margin-top: 40px;
+    padding: 24px;
+    background: var(--dark);
+    color: #fff;
+    text-align: center;
+    position: relative;
+  }
+  .master-footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--wsb-blue) 0%, var(--wsb-green) 33%, var(--gold) 66%, var(--kausar-gold) 100%);
+  }
+  .master-footer .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .master-footer .brand span { color: var(--gold); }
+  .master-footer .contact {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  .master-footer .contact a { color: var(--gold); text-decoration: none; }
+  .master-footer .disclaimer {
+    font-size: 10px;
+    color: #777;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     TAB 1 — PROCESS FLOW
+     ═══════════════════════════════════════════════════════════════════ */
+  .pf-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pf-header-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: #fff;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 16px; border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .pf-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--dark); line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .pf-header p {
+    font-size: 13px; color: var(--muted);
+  }
+
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .arrow {
+    width: 2px; height: 28px;
+    background: var(--border);
+    position: relative; flex-shrink: 0;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--border);
+  }
+  .section-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); text-align: center;
+    margin: 4px 0;
+  }
+
+  .step {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .step-title { font-size: 15px; font-weight: 600; color: var(--dark); }
+  .step-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; font-style: italic; }
+
+  .step-death { background: var(--dark); border-color: var(--dark); }
+  .step-death .step-title { color: #fff; font-family: 'Playfair Display', serif; font-size: 18px; }
+  .step-death .step-subtitle { color: #aaa; }
+  .step-death .freeze-note {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px; color: #ccc;
+    line-height: 1.6;
+  }
+  .step-death .freeze-note strong { color: #F5E9C4; }
+
+  .step-deductions { background: #fff; }
+  .deduction-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-top: 4px;
+  }
+  .deduction-card {
+    background: var(--gray);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid var(--gold);
+  }
+  .deduction-card .num { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .deduction-card .title { font-size: 13px; font-weight: 600; color: var(--dark); margin-bottom: 2px; }
+  .deduction-card .sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  .split-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px; width: 100%;
+  }
+  .split-card {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .split-card-header { padding: 12px 14px 10px; }
+  .split-card-header .tag { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .split-card-header .name { font-size: 15px; font-weight: 700; color: var(--dark); font-family: 'Playfair Display', serif; }
+  .split-card-header .bm-sub { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .split-card-body { padding: 10px 14px 14px; background: #fff; }
+  .split-card-body p { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 6px; }
+  .split-card-body .rule { font-size: 11px; color: var(--muted); background: var(--gray); border-radius: 5px; padding: 5px 8px; margin-top: 4px; }
+
+  .card-teal .split-card-header { background: var(--teal-light); border-bottom: 2px solid var(--teal); }
+  .card-teal .tag { color: var(--teal); }
+  .card-purple .split-card-header { background: var(--purple-light); border-bottom: 2px solid var(--purple); }
+  .card-purple .tag { color: var(--purple); }
+  .card-coral .split-card-header { background: var(--coral-light); border-bottom: 2px solid var(--coral); }
+  .card-coral .tag { color: var(--coral); }
+
+  .step-faraid { background: var(--blue-light); border-color: var(--blue); padding: 16px 20px; }
+  .faraid-heirs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px; margin-top: 8px;
+  }
+  .heir-card {
+    background: #fff;
+    border: 1px solid rgba(26,74,122,0.2);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .heir-card .heir-name { font-size: 12px; font-weight: 600; color: var(--blue); }
+  .heir-card .heir-share { font-size: 16px; font-weight: 700; color: var(--dark); font-family: 'Playfair Display', serif; margin: 4px 0; }
+  .heir-card .heir-pct { font-size: 10px; color: var(--muted); }
+  .muafakat-note {
+    margin-top: 10px; font-size: 12px; color: var(--muted);
+    text-align: center; font-style: italic;
+    padding: 6px 12px;
+    background: rgba(26,74,122,0.06);
+    border-radius: 6px;
+  }
+
+  .step-keys { background: var(--amber-light); border-color: var(--gold); padding: 16px 20px; }
+  .keys-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-top: 8px;
+  }
+  .key-card {
+    background: #fff;
+    border: 1px solid rgba(184,149,42,0.25);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .key-card .key-icon { font-size: 18px; margin-bottom: 6px; }
+  .key-card .key-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .key-card .key-name { font-size: 13px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
+  .key-card .key-bm { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 6px; }
+  .key-card .key-route { font-size: 11px; color: var(--text); background: var(--gray); padding: 4px 8px; border-radius: 4px; line-height: 1.4; }
+
+  .cta {
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 24px 28px;
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--wsb-blue) 0%, var(--wsb-green) 50%, var(--kausar-gold) 100%);
+  }
+  .cta-left .cta-tag { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .cta-left .cta-title { font-family: 'Playfair Display', serif; font-size: 18px; color: #fff; font-weight: 700; line-height: 1.3; }
+  .cta-left .cta-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .cta-right {
+    background: var(--gold); color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 12px 24px; border-radius: 8px;
+    white-space: nowrap; text-align: center;
+    flex-shrink: 0;
+    text-decoration: none;
+    display: block;
+  }
+  .cta-right .cta-plan { font-size: 10px; font-weight: 400; opacity: 0.85; margin-top: 2px; }
+
+  .example-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 10px;
+  }
+  .example-box .ex-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .example-box .ex-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid var(--gray); }
+  .example-box .ex-row:last-child { border-bottom: none; font-weight: 600; color: var(--teal); }
+  .example-box .ex-row span:last-child { font-weight: 500; }
+</style>
+</head>
+<body data-lang="ms">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MASTER TOP BAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div>
+    <div class="brand-mark">Wasiyyah <span>Shoppe</span> Berhad</div>
+    <div class="brand-tag"><span class="en">Islamic Estate Planning Suite</span><span class="bm">Suite Perancangan Harta Islam</span></div>
+  </div>
+  <div class="lang-bar">
+    <span class="lang-label">Lang</span>
+    <button class="lang-btn" id="lang-en" onclick="setLang('en')">English</button>
+    <button class="lang-btn active" id="lang-ms" onclick="setLang('ms')">Bahasa</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     STAT BANNER
+     ═══════════════════════════════════════════════════════════════════ -->
+<div style="background:var(--dark);border-bottom:1px solid rgba(184,149,42,0.3);padding:10px 24px;text-align:center;">
+  <span style="font-size:12px;color:#aaa;">
+    <span class="en">💡 Did you know? <strong style="color:var(--gold);">RM90 billion</strong> in assets are frozen in Malaysia — <strong style="color:var(--gold);">90% belong to Muslims.</strong> Most families wait <strong style="color:#fff;">5–10 years</strong> just to access what is rightfully theirs.</span>
+    <span class="bm">💡 Tahukah anda? <strong style="color:var(--gold);">RM90 bilion</strong> aset dibekukan di Malaysia — <strong style="color:var(--gold);">90% milik orang Islam.</strong> Kebanyakan keluarga menunggu <strong style="color:#fff;">5–10 tahun</strong> hanya untuk mendapatkan apa yang menjadi hak mereka.</span>
+  </span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TAB NAVIGATION
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="tab-nav" id="tabNav">
+  <button class="tab-btn active" data-tab="flow" onclick="setTab('flow')">
+    <span class="tab-icon">🔄</span>
+    <span><span class="en">Estate Process Flow</span><span class="bm">Aliran Proses Harta</span></span>
+    <span class="tab-sub"><span class="en">What happens after death</span><span class="bm">Apa berlaku selepas kematian</span></span>
+  </button>
+  <button class="tab-btn" data-tab="faraid" onclick="setTab('faraid')">
+    <span class="tab-icon">⚖️</span>
+    <span><span class="en">Faraid Calculator</span><span class="bm">Kalkulator Faraid</span></span>
+    <span class="tab-sub"><span class="en">Calculate heir shares</span><span class="bm">Kira bahagian waris</span></span>
+  </button>
+  <button class="tab-btn" data-tab="hibah" onclick="setTab('hibah')">
+    <span class="tab-icon">🎁</span>
+    <span><span class="en">Plans &amp; Packages</span><span class="bm">Pelan &amp; Pakej</span></span>
+    <span class="tab-sub"><span class="en">Al-Wasitah · Hibah pricing</span><span class="bm">Al-Wasitah · Harga Hibah</span></span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TAB 1 — PROCESS FLOW
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-flow">
+<div class="page">
+
+  <div class="pf-header">
+    <div class="pf-header-badge">Wasiyyah Shoppe Berhad</div>
+    <h1><span class="en">What happens to your assets when you die?</span><span class="bm">Apa yang berlaku kepada harta anda selepas kematian?</span></h1>
+    <p><span class="en">A complete guide to Islamic estate process flow in Malaysia</span><span class="bm">Panduan lengkap proses harta pusaka Islam di Malaysia</span></p>
+  </div>
+
+  <div class="flow">
+
+    <!-- STEP 1: DEATH -->
+    <div class="step step-death" style="padding: 20px 24px;">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
+        <div>
+          <div class="step-title"><span class="en">Death</span><span class="bm">Kematian</span></div>
+          <div class="step-subtitle">
+            <span class="en">What happens the moment someone passes away</span>
+            <span class="bm">Apa berlaku ketika seseorang meninggal dunia</span>
+          </div>
+        </div>
+      </div>
+      <div class="freeze-note">
+        <span class="en"><strong>All registered assets freeze instantly.</strong> Bank accounts, property, vehicles, EPF (if no nominee), investments, shares — everything under the deceased's name is locked by law. No one can sell, withdraw, or transfer until the estate is legally processed. This is <strong>harta beku</strong>.<br><br>Ownership shifts from the individual → to the estate → to be distributed among heirs (waris).</span>
+        <span class="bm"><strong>Semua aset berdaftar dibekukan serta-merta.</strong> Akaun bank, hartanah, kenderaan, KWSP (jika tiada penama), pelaburan, saham — semua yang atas nama simati dikunci oleh undang-undang. Tiada sesiapa boleh jual, keluar atau pindah milik sehingga pusaka diproses secara sah. Inilah <strong>harta beku</strong>.<br><br>Pemilikan berpindah dari individu → ke pusaka → untuk diagihkan kepada waris.</span>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+    <div class="section-label">
+      <span class="en">Priority deductions — must be settled before any heir receives anything</span>
+      <span class="bm">Potongan utama — wajib diselesaikan sebelum waris menerima apa-apa</span>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- STEP 2: DEDUCTIONS -->
+    <div class="step step-deductions" style="padding: 16px 20px;">
+      <div class="deduction-grid">
+        <div class="deduction-card">
+          <div class="num"><span class="en">First</span><span class="bm">Pertama</span></div>
+          <div style="font-size:18px;margin-bottom:4px;">🕊️</div>
+          <div class="title"><span class="en">Funeral costs</span><span class="bm">Kos pengebumian</span></div>
+          <div class="sub">
+            <span class="en">Burial, transport, kafan. Paid before anything else.</span>
+            <span class="bm">Pengebumian, pengangkutan, kafan. Dibayar terlebih dahulu.</span>
+          </div>
+        </div>
+        <div class="deduction-card">
+          <div class="num"><span class="en">Second</span><span class="bm">Kedua</span></div>
+          <div style="font-size:18px;margin-bottom:4px;">📊</div>
+          <div class="title"><span class="en">All debts</span><span class="bm">Semua hutang</span></div>
+          <div class="sub">
+            <span class="en">Debts to Allah (zakat, fidyah, haji) + debts to people + bank loans, mortgage, credit cards.</span>
+            <span class="bm">Hutang dengan Allah (zakat, fidyah, haji) + hutang dengan manusia + pinjaman bank, gadai janji, kad kredit.</span>
+          </div>
+        </div>
+        <div class="deduction-card">
+          <div class="num"><span class="en">Third</span><span class="bm">Ketiga</span></div>
+          <div style="font-size:18px;margin-bottom:4px;">⚖️</div>
+          <div class="title"><span class="en">Admin &amp; legal costs</span><span class="bm">Kos pengurusan &amp; guaman</span></div>
+          <div class="sub">
+            <span class="en">Typically 5–10% of estate value. Can reach RM50,000+ for a RM1M estate.</span>
+            <span class="bm">Biasanya 5–10% nilai pusaka. Boleh mencecah RM50,000+ untuk pusaka RM1 juta.</span>
+          </div>
+        </div>
+      </div>
+      <div class="example-box" style="margin-top:12px;">
+        <div class="ex-label">
+          <span class="en">Example — estate value RM1,000,000</span>
+          <span class="bm">Contoh — nilai pusaka RM1,000,000</span>
+        </div>
+        <div class="ex-row"><span><span class="en">Funeral costs</span><span class="bm">Kos pengebumian</span></span><span>– RM5,000</span></div>
+        <div class="ex-row"><span><span class="en">Debts (assumed 10%)</span><span class="bm">Hutang (anggaran 10%)</span></span><span>– RM100,000</span></div>
+        <div class="ex-row"><span><span class="en">Admin &amp; legal (~5%)</span><span class="bm">Pengurusan &amp; guaman (~5%)</span></span><span>– RM50,000</span></div>
+        <div class="ex-row"><span><span class="en">Remaining estate for distribution</span><span class="bm">Baki pusaka untuk agihan</span></span><span>RM845,000</span></div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+    <div class="section-label">
+      <span class="en">If Hibah was planned during your lifetime — those assets are already settled</span>
+      <span class="bm">Jika Hibah telah dirancang semasa hidup — aset tersebut sudah diselesaikan</span>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- HIBAH NOTE CARD -->
+    <div class="step" style="background:var(--teal-light);border-color:var(--teal);padding:16px 20px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        <div style="font-size:26px;">🤲</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--teal);">Hibah</div>
+          <div style="font-size:11px;color:var(--muted);font-style:italic;">
+            <span class="en">Planned lifetime transfer — exits the estate entirely before distribution</span>
+            <span class="bm">Pindahan terancang semasa hidup — keluar dari pusaka sebelum agihan</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:10px;">
+        <span class="en">Hibah is not part of the estate. If you have responsibly planned and executed a Hibah during your lifetime — through a valid <em>akad</em> — those assets have already been transferred to the intended recipient. They do not go through deductions, Wasiat, or Faraid. This is the essence of intentional estate planning.</span>
+        <span class="bm">Hibah bukan sebahagian daripada pusaka. Jika anda telah merancang dan melaksanakan Hibah semasa hidup — melalui <em>akad</em> yang sah — aset tersebut sudah dipindahkan kepada penerima yang dikehendaki. Ia tidak melalui potongan, Wasiat, atau Faraid. Inilah intipati perancangan harta yang bertanggungjawab.</span>
+      </p>
+      <div style="background:white;border-radius:6px;padding:8px 12px;font-size:11px;color:var(--teal);border-left:3px solid var(--teal);">
+        <span class="en">✓ Settled during your lifetime &nbsp;·&nbsp; ✓ Goes directly to named recipient &nbsp;·&nbsp; ✓ No limit on amount &nbsp;·&nbsp; ✓ Can be given to anyone</span>
+        <span class="bm">✓ Diselesaikan semasa hidup &nbsp;·&nbsp; ✓ Terus kepada penerima &nbsp;·&nbsp; ✓ Tiada had jumlah &nbsp;·&nbsp; ✓ Boleh diberi kepada sesiapa</span>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+    <div class="section-label">
+      <span class="en">The remaining estate is then reduced further before Faraid</span>
+      <span class="bm">Baki pusaka kemudian dikurangkan lagi sebelum Faraid</span>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- STEP 3: WASIAT + HARTA SEPENCARIAN -->
+    <div class="split-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="split-card card-purple">
+        <div class="split-card-header">
+          <div class="tag"><span class="en">Max 1/3 of remaining estate</span><span class="bm">Maksimum 1/3 baki pusaka</span></div>
+          <div style="font-size:22px; margin-bottom:4px;">📜</div>
+          <div class="name">Wasiat</div>
+          <div class="bm-sub"><span class="en">Islamic will — for non-heirs</span><span class="bm">Wasiat 1/3 — untuk bukan waris</span></div>
+        </div>
+        <div class="split-card-body">
+          <p>
+            <span class="en">An Islamic will for those <strong>outside your Faraid heirs</strong> — charities, distant relatives, amal jariah. Capped at 1/3 of the estate after funeral costs and debts.</span>
+            <span class="bm">Wasiat Islam untuk mereka <strong>di luar waris Faraid</strong> — badan amal, saudara jauh, amal jariah. Terhad 1/3 daripada pusaka selepas kos pengebumian dan hutang.</span>
+          </p>
+          <div class="rule">
+            <span class="en">⚠ Cannot go to Faraid heirs (unless all consent)<br>⚠ Requires court processing<br>✓ For charities &amp; non-heirs<br>✓ Amal jariah purposes</span>
+            <span class="bm">⚠ Tidak boleh kepada waris Faraid (kecuali semua setuju)<br>⚠ Perlu proses mahkamah<br>✓ Untuk badan amal &amp; bukan waris<br>✓ Tujuan amal jariah</span>
+          </div>
+        </div>
+      </div>
+      <div class="split-card card-coral">
+        <div class="split-card-header">
+          <div class="tag"><span class="en">Spouse claim — deducted before Faraid</span><span class="bm">Tuntutan pasangan — ditolak sebelum Faraid</span></div>
+          <div style="font-size:22px; margin-bottom:4px;">🏠</div>
+          <div class="name">Harta Sepencarian</div>
+          <div class="bm-sub"><span class="en">Jointly-acquired marital assets</span><span class="bm">Harta bersama semasa berkahwin</span></div>
+        </div>
+        <div class="split-card-body">
+          <p>
+            <span class="en">Assets acquired <strong>jointly during marriage</strong>. The surviving spouse may claim up to half as their own share — this is deducted before Faraid is applied. Must be documented and agreed by all heirs.</span>
+            <span class="bm">Aset yang diperoleh <strong>bersama semasa perkahwinan</strong>. Pasangan yang masih hidup boleh tuntut sehingga separuh sebagai bahagian mereka sendiri — ini ditolak sebelum Faraid dikira. Wajib didokumen dan dipersetujui semua waris.</span>
+          </p>
+          <div class="rule">
+            <span class="en">⚠ Up to ½ by agreement<br>⚠ Must be documented<br>✓ Protects surviving spouse<br>✓ Reduces the Faraid estate</span>
+            <span class="bm">⚠ Sehingga ½ dengan persetujuan<br>⚠ Wajib didokumen<br>✓ Melindungi pasangan yang masih hidup<br>✓ Mengurangkan pusaka Faraid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+    <div class="section-label">
+      <span class="en">What remains after all the above is the Faraid estate — distributed by Islamic law</span>
+      <span class="bm">Apa yang tinggal selepas semua ini adalah harta Faraid — diagihkan mengikut undang-undang Islam</span>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- STEP 4: FARAID -->
+    <div class="step step-faraid">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;">4</div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--blue);">
+            <span class="en">Faraid — Islamic Inheritance Law</span>
+            <span class="bm">Faraid — Undang-Undang Pusaka Islam</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);font-style:italic;">
+            <span class="en">Fixed shares prescribed in Quran (An-Nisa 11, 12, 176)</span>
+            <span class="bm">Bahagian tetap ditetapkan dalam Al-Quran (An-Nisa 11, 12, 176)</span>
+          </div>
+        </div>
+      </div>
+      <div class="faraid-heirs">
+        <div class="heir-card">
+          <div class="heir-name"><span class="en">Wife</span><span class="bm">Isteri</span></div>
+          <div class="heir-share">1/8</div>
+          <div class="heir-pct"><span class="en">12.5% if has children</span><span class="bm">12.5% jika ada anak</span></div>
+        </div>
+        <div class="heir-card">
+          <div class="heir-name"><span class="en">Father</span><span class="bm">Bapa</span></div>
+          <div class="heir-share">1/6</div>
+          <div class="heir-pct"><span class="en">16.7% if has children</span><span class="bm">16.7% jika ada anak</span></div>
+        </div>
+        <div class="heir-card">
+          <div class="heir-name"><span class="en">Mother</span><span class="bm">Ibu</span></div>
+          <div class="heir-share">1/6</div>
+          <div class="heir-pct"><span class="en">16.7% if has children</span><span class="bm">16.7% jika ada anak</span></div>
+        </div>
+        <div class="heir-card">
+          <div class="heir-name"><span class="en">Son</span><span class="bm">Anak Lelaki</span></div>
+          <div class="heir-share">2x</div>
+          <div class="heir-pct"><span class="en">Double daughter's share</span><span class="bm">Dua kali bahagian anak perempuan</span></div>
+        </div>
+        <div class="heir-card">
+          <div class="heir-name"><span class="en">Daughter</span><span class="bm">Anak Perempuan</span></div>
+          <div class="heir-share">1x</div>
+          <div class="heir-pct"><span class="en">Remaining portion</span><span class="bm">Bahagian baki</span></div>
+        </div>
+      </div>
+      <div class="muafakat-note">
+        <span class="en">Heirs may also agree on a different distribution by consensus — <strong>Muafakat</strong> — provided all adult heirs consent.</span>
+        <span class="bm">Waris juga boleh bersetuju pada agihan berbeza melalui — <strong>Muafakat</strong> — dengan persetujuan semua waris dewasa.</span>
+      </div>
+      <div style="margin-top:12px;text-align:center;">
+        <button onclick="setTab('faraid')" style="background:var(--blue);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <span class="en">→ Try the Faraid Calculator</span>
+          <span class="bm">→ Cuba Kalkulator Faraid</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+    <div class="section-label">
+      <span class="en">To unlock and transfer assets, heirs need 3 keys</span>
+      <span class="bm">Untuk membuka dan pindah milik aset, waris perlu 3 kunci</span>
+    </div>
+    <div class="arrow"></div>
+
+    <!-- STEP 5: 3 KEYS -->
+    <div class="step step-keys">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;">5</div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--amber);">
+            <span class="en">The 3-Key Process</span>
+            <span class="bm">Proses 3 Peringkat Pengurusan</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);font-style:italic;">
+            <span class="en">Assets remain frozen until all 3 stages are completed</span>
+            <span class="bm">Aset kekal beku sehingga semua 3 peringkat selesai</span>
+          </div>
+        </div>
+      </div>
+      <div class="keys-grid">
+        <div class="key-card">
+          <div class="key-icon">🗝</div>
+          <div class="key-label">P1 — Key 1</div>
+          <div class="key-name"><span class="en">Acquisition of Authority</span><span class="bm">Perolehan Kuasa</span></div>
+          <div class="key-bm"><span class="bm">Memperoleh kuasa pentadbir</span></div>
+          <div class="key-route">
+            <span class="en"><strong>Below RM600K</strong> (movable only) → Amanah Raya (ARB)<br><strong>Below RM5M</strong> + land → Pejabat Pusaka Kecil<br><strong>Above RM5M</strong> → Mahkamah Tinggi</span>
+            <span class="bm"><strong>Bawah RM600K</strong> (aset alih) → Amanah Raya (ARB)<br><strong>Bawah RM5M</strong> + tanah → Pejabat Pusaka Kecil<br><strong>Atas RM5M</strong> → Mahkamah Tinggi</span>
+          </div>
+        </div>
+        <div class="key-card">
+          <div class="key-icon">🗝</div>
+          <div class="key-label">P2 — Key 2</div>
+          <div class="key-name"><span class="en">Estate Administration</span><span class="bm">Pentadbiran</span></div>
+          <div class="key-bm"><span class="bm">Pentadbiran pusaka</span></div>
+          <div class="key-route">
+            <span class="en">Settle all debts · Unfreeze &amp; liquidate assets · Check asset restrictions (mortgage, kaveat) · Obtain Surat Kuasa</span>
+            <span class="bm">Selesaikan hutang · Buka &amp; cairkan aset · Semak sekatan aset (gadai, kaveat) · Dapatkan Surat Kuasa</span>
+          </div>
+        </div>
+        <div class="key-card">
+          <div class="key-icon">🗝</div>
+          <div class="key-label">P3 — Key 3</div>
+          <div class="key-name"><span class="en">Distribution</span><span class="bm">Pembahagian</span></div>
+          <div class="key-bm"><span class="bm">Pembahagian pusaka</span></div>
+          <div class="key-route">
+            <span class="en">Execute Hibah · Execute Wasiat 1/3 · Apply Faraid or Muafakat · Transfer to rightful heirs</span>
+            <span class="bm">Laksana Hibah · Laksana Wasiat 1/3 · Guna Faraid atau Muafakat · Pindah milik kepada waris sah</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(184,149,42,0.1);border-radius:8px;font-size:12px;color:var(--amber);text-align:center;">
+        <span class="en">⏱ Without proper planning: <strong>5–10 years</strong> &amp; up to <strong>RM100,000+</strong> in costs · With Al-Wasitah: <strong>3–12 months</strong></span>
+        <span class="bm">⏱ Tanpa perancangan: <strong>5–10 tahun</strong> &amp; kos mencecah <strong>RM100,000+</strong> · Dengan Al-Wasitah: <strong>3–12 bulan</strong></span>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <div class="cta-left">
+        <div class="cta-tag"><span class="en">📋 I've just reviewed the estate process</span><span class="bm">📋 Saya baru meneliti proses harta pusaka</span></div>
+        <div class="cta-title">Al-Wasitah by Wasiyyah Shoppe</div>
+        <div class="cta-sub">
+          <span class="en">Understand the 3 stages and want someone to manage it properly for your family? Let's talk.</span>
+          <span class="bm">Faham 3 peringkat dan mahu seseorang uruskannya dengan betul untuk keluarga anda? Jom berbincang.</span>
+        </div>
+      </div>
+      <a href="https://wa.me/60173335664?text=Hi,%20I%20just%20reviewed%20the%20Islamic%20estate%20process%20flow%20and%20would%20like%20to%20discuss%20proper%20planning%20for%20my%20family." class="cta-right">
+        <span class="en">Start My Estate Plan</span>
+        <span class="bm">Mula Perancangan Pusaka</span>
+        <div class="cta-plan">
+          <span class="en">WhatsApp · 017-333 5664</span>
+          <span class="bm">WhatsApp · 017-333 5664</span>
+        </div>
+      </a>
+    </div>
+
+  </div><!-- end flow -->
+
+</div>
+</div><!-- end panel-flow -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TAB 2 — FARAID CALCULATOR
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+  /* Calculator-specific styles */
+  .fc-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--dark);
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .fc-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 120px; height: 2px;
+    background: linear-gradient(90deg, var(--wsb-blue) 0%, var(--wsb-green) 50%, var(--kausar-gold) 100%);
+  }
+  .fc-header-left .fc-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .fc-header-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700; color: var(--dark);
+    line-height: 1.1;
+  }
+  .fc-header-left .fc-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .fc-header-right .fc-badge {
+    display: inline-block;
+    background: var(--dark); color: var(--gold);
+    padding: 6px 14px; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-radius: 4px;
+  }
+
+  /* Steps */
+  .fc-steps-bar {
+    display: flex; gap: 8px; margin: 24px 0;
+  }
+  .fc-step {
+    flex: 1; padding: 14px 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    transition: all .2s;
+    cursor: pointer;
+  }
+  .fc-step.active {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: #fff;
+  }
+  .fc-step.done {
+    border-color: var(--teal);
+    background: var(--teal-light);
+  }
+  .fc-step .fc-step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    display: block;
+  }
+  .fc-step .fc-step-label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-top: 2px;
+    display: block;
+  }
+
+  .fc-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .fc-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .fc-card .fc-card-sub {
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 18px;
+    font-style: italic;
+  }
+
+  .fc-field {
+    margin-bottom: 14px;
+  }
+  .fc-field label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 6px;
+    letter-spacing: .3px;
+  }
+  .fc-field label .fc-muted {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .fc-field input[type="number"],
+  .fc-field input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--dark);
+    transition: border-color .2s;
+  }
+  .fc-field input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: #fff;
+  }
+
+  .fc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fc-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .fc-summary-bar {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%);
+    color: #fff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .fc-summary-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--wsb-blue), var(--wsb-green), var(--kausar-gold));
+  }
+  .fc-summary-bar .fc-sum-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .fc-summary-bar .fc-sum-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 700;
+    color: #fff;
+  }
+
+  .fc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 12px 24px;
+    border: none; border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .5px;
+  }
+  .fc-btn-primary {
+    background: var(--gold);
+    color: #fff;
+  }
+  .fc-btn-primary:hover { background: var(--dark); }
+  .fc-btn-secondary {
+    background: transparent;
+    color: var(--dark);
+    border: 1.5px solid var(--border);
+  }
+  .fc-btn-secondary:hover { border-color: var(--dark); }
+  .fc-btn-row {
+    display: flex; gap: 10px; justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  /* Heir grid */
+  .fc-heir-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .fc-heir-item {
+    background: var(--gray);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+  }
+  .fc-heir-item-label {
+    font-size: 13px; font-weight: 600;
+    color: var(--dark);
+  }
+  .fc-heir-item-sub {
+    font-size: 11px; color: var(--muted);
+    margin-top: 2px;
+  }
+  .fc-heir-count-input {
+    width: 70px;
+    padding: 6px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    text-align: center;
+  }
+  .fc-heir-check {
+    width: 24px; height: 24px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  /* Results */
+  .fc-result-hero {
+    background: #fff;
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .fc-result-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--wsb-blue), var(--wsb-green), var(--gold), var(--kausar-gold));
+  }
+  .fc-result-hero .fc-rh-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .fc-result-hero .fc-rh-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px; font-weight: 700;
+    color: var(--dark);
+  }
+  .fc-result-hero .fc-rh-sub {
+    font-size: 12px; color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .fc-result-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .fc-result-table th {
+    background: var(--dark);
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 12px 14px;
+    text-align: left;
+  }
+  .fc-result-table th:last-child, .fc-result-table td:last-child { text-align: right; }
+  .fc-result-table td {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--dark);
+    border-bottom: 1px solid var(--border);
+  }
+  .fc-result-table tbody tr:last-child td { border-bottom: none; }
+  .fc-result-table .fc-heir-share-frac {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    color: var(--gold);
+    font-size: 15px;
+  }
+  .fc-result-table .fc-heir-amt {
+    font-weight: 600;
+    color: var(--teal);
+  }
+
+  .fc-notes {
+    background: var(--amber-light);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--amber);
+    line-height: 1.6;
+  }
+  .fc-notes strong { color: var(--dark); }
+
+  .fc-disclaimer {
+    background: var(--gray);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .fc-grid-2, .fc-grid-3 { grid-template-columns: 1fr; }
+    .fc-heir-grid { grid-template-columns: 1fr; }
+    .fc-header { flex-direction: column; gap: 10px; }
+  }
+</style>
+
+<div class="tab-panel" id="panel-faraid">
+<div class="page">
+
+  <div class="fc-header">
+    <div class="fc-header-left">
+      <div class="fc-tag">⚖️&nbsp; <span class="en">Islamic Inheritance</span><span class="bm">Pusaka Islam</span></div>
+      <h1><span class="en">Faraid Calculator</span><span class="bm">Kalkulator Faraid</span></h1>
+      <div class="fc-sub">
+        <span class="en">Calculate heir shares based on Shafi'i jurisprudence</span>
+        <span class="bm">Kira bahagian waris mengikut mazhab Shafi'i</span>
+      </div>
+    </div>
+    <div class="fc-header-right">
+      <div class="fc-badge">WSB · Estate Planning</div>
+    </div>
+  </div>
+
+  <div class="fc-steps-bar">
+    <div class="fc-step active" id="fc-step-1" onclick="fcGoto(1)">
+      <span class="fc-step-num">1</span>
+      <span style="font-size:16px;">🏦</span>
+      <span class="fc-step-label"><span class="en">Estate</span><span class="bm">Pusaka</span></span>
+    </div>
+    <div class="fc-step" id="fc-step-2" onclick="fcGoto(2)">
+      <span class="fc-step-num">2</span>
+      <span style="font-size:16px;">👨‍👩‍👧‍👦</span>
+      <span class="fc-step-label"><span class="en">Heirs</span><span class="bm">Waris</span></span>
+    </div>
+    <div class="fc-step" id="fc-step-3" onclick="fcGoto(3)">
+      <span class="fc-step-num">3</span>
+      <span style="font-size:16px;">⚖️</span>
+      <span class="fc-step-label"><span class="en">Distribution</span><span class="bm">Agihan</span></span>
+    </div>
+  </div>
+
+  <!-- STEP 1: ESTATE -->
+  <div class="fc-card" id="fc-card-1">
+    <h3>🏦 <span class="en">Estate Value &amp; Deductions</span><span class="bm">Nilai Pusaka &amp; Potongan</span></h3>
+    <div class="fc-card-sub">
+      <span class="en">Enter gross estate value and deductions. Admin &amp; legal costs are auto-calculated from a percentage — adjust as needed.</span>
+      <span class="bm">Masukkan nilai pusaka kasar dan potongan. Kos pengurusan &amp; guaman dikira secara automatik dari peratusan — laraskan mengikut keperluan.</span>
+    </div>
+
+    <div class="fc-field">
+      <label>
+        <span class="en">Gross Estate (RM)</span><span class="bm">Pusaka Kasar (RM)</span>
+        <span class="fc-muted"> — <span class="en">total value of all assets</span><span class="bm">jumlah nilai semua aset</span></span>
+      </label>
+      <input type="number" id="fc-gross" placeholder="1000000" min="0" step="1000" oninput="fcUpdateNet()">
+    </div>
+
+    <div class="fc-grid-2">
+      <div class="fc-field">
+        <label><span class="en">Funeral Costs</span><span class="bm">Kos Pengebumian</span></label>
+        <input type="number" id="fc-funeral" placeholder="5000" min="0" step="100" oninput="fcUpdateNet()">
+      </div>
+      <div class="fc-field">
+        <label><span class="en">Debts &amp; Loans</span><span class="bm">Hutang &amp; Pinjaman</span></label>
+        <input type="number" id="fc-debts" placeholder="100000" min="0" step="1000" oninput="fcUpdateNet()">
+      </div>
+    </div>
+
+    <div class="fc-grid-2">
+      <div class="fc-field">
+        <label>
+          <span class="en">Wasiat</span><span class="bm">Wasiat</span>
+          <span class="fc-muted"> (<span class="en">max 1/3 of post-debt balance</span><span class="bm">maks 1/3 baki selepas hutang</span>)</span>
+        </label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" id="fc-wasiat" placeholder="0" min="0" step="1000" oninput="fcUpdateNet()" style="flex:1;">
+          <button type="button" onclick="fcSetMaxWasiat()" class="fc-btn fc-btn-primary" style="padding:10px 14px;font-size:12px;white-space:nowrap;flex-shrink:0;">
+            <span class="en">Max 1/3</span><span class="bm">Maks 1/3</span>
+          </button>
+        </div>
+      </div>
+      <div class="fc-field">
+        <label>
+          <span class="en">Hibah (executed during lifetime)</span><span class="bm">Hibah (dilaksanakan semasa hidup)</span>
+          <span class="fc-muted"> — <span class="en">already outside the estate</span><span class="bm">sudah keluar dari pusaka</span></span>
+        </label>
+        <input type="number" id="fc-hibah" placeholder="0" min="0" step="1000" oninput="fcUpdateNet()">
+      </div>
+    </div>
+    <div class="fc-grid-2">
+      <div class="fc-field">
+        <label>
+          <span class="en">Harta Sepencarian claim</span><span class="bm">Tuntutan Harta Sepencarian</span>
+          <span class="fc-muted"> — <span class="en">spouse's jointly-acquired share</span><span class="bm">bahagian harta bersama pasangan</span></span>
+        </label>
+        <input type="number" id="fc-sepencarian" placeholder="0" min="0" step="1000" oninput="fcUpdateNet()">
+      </div>
+      <div class="fc-field">
+        <label>
+          <span class="en">Admin &amp; Legal Costs</span><span class="bm">Kos Pengurusan &amp; Guaman</span>
+          <span class="fc-muted"> — <span class="en">auto-calculated</span><span class="bm">dikira secara automatik</span></span>
+        </label>
+        <select id="fc-admin-pct" onchange="fcUpdateNet()" style="width:100%;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;border:1.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--dark);">
+          <option value="0"><span class="en">None / Not applicable</span></option>
+          <option value="5">5% — <span class="en">typical small estate</span></option>
+          <option value="7" selected>7% — <span class="en">average estimate</span></option>
+          <option value="10">10% — <span class="en">complex / contested estate</span></option>
+        </select>
+        <div id="fc-admin-display" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <div class="fc-summary-bar">
+      <div>
+        <div class="fc-sum-label"><span class="en">Harta Pusaka (Distributable)</span><span class="bm">Harta Pusaka (Boleh Diagih)</span></div>
+        <div class="fc-sum-value" id="fc-net-display">RM 0</div>
+      </div>
+    </div>
+
+    <div class="fc-btn-row">
+      <button class="fc-btn fc-btn-primary" onclick="fcGoto(2)">
+        <span class="en">Next: Heirs →</span><span class="bm">Seterusnya: Waris →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: HEIRS -->
+  <div class="fc-card" id="fc-card-2" style="display:none;">
+    <h3>👨‍👩‍👧‍👦 <span class="en">Select Heirs</span><span class="bm">Pilih Waris</span></h3>
+    <div class="fc-card-sub">
+      <span class="en">Enter the number of heirs present at the time of death. Siblings only count if deceased has no son and no father.</span>
+      <span class="bm">Masukkan bilangan waris yang hidup semasa kematian. Adik-beradik hanya dikira jika simati tiada anak lelaki dan tiada bapa.</span>
+    </div>
+
+    <div class="fc-heir-grid">
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👨 <span class="en">Husband</span><span class="bm">Suami</span></div>
+          <div class="fc-heir-item-sub"><span class="en">max 1</span><span class="bm">maks 1</span></div>
+        </div>
+        <input type="checkbox" class="fc-heir-check" id="fc-h-husband">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👩 <span class="en">Wife / Wives</span><span class="bm">Isteri</span></div>
+          <div class="fc-heir-item-sub"><span class="en">max 4 (share equally)</span><span class="bm">maks 4 (bahagi sama)</span></div>
+        </div>
+        <input type="number" class="fc-heir-count-input" id="fc-h-wife" min="0" max="4" value="0">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👴 <span class="en">Father</span><span class="bm">Bapa</span></div>
+        </div>
+        <input type="checkbox" class="fc-heir-check" id="fc-h-father">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👵 <span class="en">Mother</span><span class="bm">Ibu</span></div>
+        </div>
+        <input type="checkbox" class="fc-heir-check" id="fc-h-mother">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👦 <span class="en">Sons</span><span class="bm">Anak Lelaki</span></div>
+          <div class="fc-heir-item-sub"><span class="en">number of living sons</span><span class="bm">bilangan anak lelaki hidup</span></div>
+        </div>
+        <input type="number" class="fc-heir-count-input" id="fc-h-son" min="0" value="0">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👧 <span class="en">Daughters</span><span class="bm">Anak Perempuan</span></div>
+          <div class="fc-heir-item-sub"><span class="en">number of living daughters</span><span class="bm">bilangan anak perempuan hidup</span></div>
+        </div>
+        <input type="number" class="fc-heir-count-input" id="fc-h-daughter" min="0" value="0">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">🧑 <span class="en">Full Brothers</span><span class="bm">Adik-beradik Lelaki (seibu sebapa)</span></div>
+          <div class="fc-heir-item-sub"><span class="en">hijab by sons/father</span><span class="bm">terhalang oleh anak lelaki/bapa</span></div>
+        </div>
+        <input type="number" class="fc-heir-count-input" id="fc-h-brother" min="0" value="0">
+      </div>
+      <div class="fc-heir-item">
+        <div>
+          <div class="fc-heir-item-label">👩‍🦰 <span class="en">Full Sisters</span><span class="bm">Adik-beradik Perempuan (seibu sebapa)</span></div>
+          <div class="fc-heir-item-sub"><span class="en">hijab by sons/father</span><span class="bm">terhalang oleh anak lelaki/bapa</span></div>
+        </div>
+        <input type="number" class="fc-heir-count-input" id="fc-h-sister" min="0" value="0">
+      </div>
+    </div>
+
+    <div class="fc-btn-row">
+      <button class="fc-btn fc-btn-secondary" onclick="fcGoto(1)">
+        <span class="en">← Back</span><span class="bm">← Kembali</span>
+      </button>
+      <button class="fc-btn fc-btn-primary" onclick="fcCalculate()">
+        <span class="en">Calculate →</span><span class="bm">Kira →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULTS -->
+  <div class="fc-card" id="fc-card-3" style="display:none;">
+    <h3>⚖️ <span class="en">Distribution Results</span><span class="bm">Hasil Agihan</span></h3>
+    <div class="fc-card-sub">
+      <span class="en">Distribution of Harta Pusaka after all deductions</span>
+      <span class="bm">Agihan Harta Pusaka selepas semua potongan</span>
+    </div>
+
+    <div class="fc-result-hero">
+      <div class="fc-rh-label"><span class="en">Harta Pusaka</span><span class="bm">Harta Pusaka</span></div>
+      <div class="fc-rh-value" id="fc-res-total">RM 0</div>
+      <div class="fc-rh-sub">
+        <span class="en">To be distributed among heirs</span>
+        <span class="bm">Untuk diagihkan kepada waris</span>
+      </div>
+    </div>
+
+    <table class="fc-result-table">
+      <thead>
+        <tr>
+          <th><span class="en">Heir</span><span class="bm">Waris</span></th>
+          <th><span class="en">Share</span><span class="bm">Bahagian</span></th>
+          <th>%</th>
+          <th><span class="en">Amount</span><span class="bm">Jumlah</span></th>
+        </tr>
+      </thead>
+      <tbody id="fc-res-tbody"></tbody>
+    </table>
+
+    <div id="fc-res-notes"></div>
+
+    <div class="fc-disclaimer">
+      <span class="en"><strong>Disclaimer:</strong> This calculator implements core Faraid rules (fardh, asabah, awl, radd, primary hijab). It does not cover grandchildren via deceased sons, half-siblings (uterine/consanguine), or some edge cases like Umariyyah. For binding distribution, consult your WSB advisor or Syariah Court (Mahkamah Pusaka Kecil).</span>
+      <span class="bm"><strong>Penafian:</strong> Kalkulator ini melaksanakan peraturan utama Faraid (fardh, asabah, awl, radd, hijab utama). Ia tidak merangkumi cucu dari anak lelaki yang meninggal, adik-beradik sebelah (seibu/sebapa) atau kes-kes khas seperti Umariyyah. Untuk agihan rasmi, sila rujuk penasihat WSB atau Mahkamah Pusaka Kecil.</span>
+    </div>
+
+    <div class="fc-btn-row">
+      <button class="fc-btn fc-btn-secondary" onclick="fcGoto(2)">
+        <span class="en">← Edit Heirs</span><span class="bm">← Edit Waris</span>
+      </button>
+      <button class="fc-btn fc-btn-secondary" onclick="window.print()">
+        <span class="en">🖨 Print</span><span class="bm">🖨 Cetak</span>
+      </button>
+      <a href="https://wa.me/60173335664?text=Hi,%20I%20just%20used%20the%20Faraid%20Calculator%20on%20your%20website%20and%20would%20like%20to%20review%20my%20estate%20distribution%20plan%20with%20an%20advisor." class="fc-btn fc-btn-primary" style="text-decoration:none;display:inline-block;">
+        <span class="en">⚖️ Discuss My Faraid Results</span><span class="bm">⚖️ Bincang Keputusan Faraid Saya</span>
+      </a>
+    </div>
+  </div>
+
+</div>
+</div><!-- end panel-faraid -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TAB 3 — HIBAH PACKAGES
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+  /* Hibah-specific styles */
+  .hb-hero {
+    text-align: center;
+    padding: 32px 0 28px;
+    position: relative;
+  }
+  .hb-hero-badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 5px 18px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+  }
+  .hb-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px; font-weight: 700;
+    color: var(--dark);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .hb-hero .hb-sub {
+    font-size: 14px; color: var(--muted);
+    max-width: 620px; margin: 0 auto;
+  }
+  .hb-hero::after {
+    content: '';
+    display: block;
+    width: 80px; height: 3px;
+    background: linear-gradient(90deg, var(--wsb-blue), var(--wsb-green), var(--kausar-gold));
+    margin: 20px auto 0;
+    border-radius: 2px;
+  }
+
+  .hb-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--dark);
+    margin: 36px 0 6px;
+    text-align: center;
+  }
+  .hb-section-sub {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* Concept cards */
+  .hb-concept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .hb-concept {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-top: 4px solid var(--gold);
+  }
+  .hb-concept.hb-concept-alt { border-top-color: var(--teal); }
+  .hb-concept h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .hb-concept .hb-concept-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+  .hb-concept p {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Package cards */
+  .hb-pkg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .hb-pkg {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .hb-pkg-header {
+    padding: 18px 20px 16px;
+    background: var(--dark);
+    color: #fff;
+    position: relative;
+  }
+  .hb-pkg-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--wsb-blue), var(--wsb-green), var(--gold), var(--kausar-gold));
+  }
+  .hb-pkg-type {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .hb-pkg-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    line-height: 1.2;
+  }
+  .hb-pkg-tagline {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .hb-pkg-body {
+    padding: 18px 20px;
+    flex: 1;
+  }
+  .hb-pkg-section {
+    margin-bottom: 14px;
+  }
+  .hb-pkg-section-title {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .hb-pkg-list {
+    list-style: none;
+    padding: 0;
+  }
+  .hb-pkg-list li {
+    font-size: 12px;
+    color: var(--text);
+    padding: 4px 0 4px 20px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .hb-pkg-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 4px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .hb-pkg-list li.warn::before {
+    content: '⚠';
+    color: var(--coral);
+  }
+  .hb-pkg-note {
+    background: var(--amber-light);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--amber);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .hb-pkg-price-bar {
+    background: var(--gold);
+    color: #fff;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .hb-pkg-price-bar.teal { background: var(--teal); }
+  .hb-pkg-price-bar.blue { background: var(--blue); }
+  .hb-pkg-price-bar.purple { background: var(--purple); }
+
+  /* Docs requirements */
+  .hb-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .hb-docs-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    border-left: 3px solid var(--gold);
+  }
+  .hb-docs-card h5 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .hb-docs-card ul {
+    list-style: none;
+  }
+  .hb-docs-card li {
+    font-size: 12px;
+    color: var(--text);
+    padding: 3px 0 3px 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .hb-docs-card li::before {
+    content: '›';
+    position: absolute;
+    left: 4px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  @media (max-width: 720px) {
+    .hb-concept-grid, .hb-pkg-grid, .hb-docs-grid { grid-template-columns: 1fr; }
+    .hb-hero h1 { font-size: 26px; }
+  }
+</style>
+
+<div class="tab-panel" id="panel-hibah">
+<div class="page">
+
+  <div class="hb-hero">
+    <div class="hb-hero-badge"><span class="en">Wasiyyah Shoppe Berhad</span><span class="bm">Wasiyyah Shoppe Berhad</span></div>
+    <h1><span class="en">Plans, Services &amp; Packages</span><span class="bm">Pelan, Perkhidmatan &amp; Pakej</span></h1>
+    <div class="hb-sub">
+      <span class="en">From lifetime protection with Al-Wasitah to direct asset transfer through Hibah — find the right solution for your family.</span>
+      <span class="bm">Dari perlindungan sepanjang hayat melalui Al-Wasitah hingga pemindahan aset terus melalui Hibah — cari penyelesaian yang tepat untuk keluarga anda.</span>
+    </div>
+  </div>
+
+  <!-- CONCEPT -->
+  <h2 class="hb-section-title">🕌 <span class="en">Two Types of Hibah</span><span class="bm">Dua Jenis Hibah</span></h2>
+  <p class="hb-section-sub">
+    <span class="en">Understand the difference before choosing</span>
+    <span class="bm">Fahami perbezaan sebelum memilih</span>
+  </p>
+
+  <div class="hb-concept-grid">
+    <div class="hb-concept">
+      <div style="font-size:22px;margin-bottom:6px;">✅</div>
+      <h4>Hibah Mutlak</h4>
+      <div class="hb-concept-sub"><span class="en">Absolute gift</span><span class="bm">Pemberian mutlak</span></div>
+      <p>
+        <span class="en">The gift transfers ownership <strong>immediately</strong> upon the giver's death. Recipient becomes the legal owner with no conditions attached. Cannot be revoked after akad.</span>
+        <span class="bm">Pemberian memindahkan hak milik <strong>serta-merta</strong> selepas pemberi meninggal. Penerima menjadi pemilik sah tanpa syarat. Tidak boleh ditarik balik selepas akad.</span>
+      </p>
+    </div>
+    <div class="hb-concept hb-concept-alt">
+      <div style="font-size:22px;margin-bottom:6px;">🔄</div>
+      <h4>Hibah Bersyarat</h4>
+      <div class="hb-concept-sub"><span class="en">Conditional gift</span><span class="bm">Pemberian bersyarat</span></div>
+      <p>
+        <span class="en">The gift is conditional — for example, if the recipient dies before the giver, the asset returns to the giver.</span>
+        <span class="bm">Pemberian bersyarat — contohnya, jika penerima meninggal dahulu, aset kembali kepada pemberi.</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- PACKAGES -->
+  <h2 class="hb-section-title">🎁 <span class="en">Hibah Packages</span><span class="bm">Pakej Hibah</span></h2>
+  <p class="hb-section-sub">
+    <span class="en">Tailored solutions for every asset type</span>
+    <span class="bm">Penyelesaian khusus untuk setiap jenis aset</span>
+  </p>
+
+  <div class="hb-pkg-grid">
+
+    <!-- 1. Hibah Hartanah Komprehensif -->
+    <div class="hb-pkg">
+      <div class="hb-pkg-header">
+        <div class="hb-pkg-type"><span class="en">Flagship · Property</span><span class="bm">Unggulan · Hartanah</span></div>
+        <div style="font-size:26px;margin:6px 0 4px;">🏡</div>
+        <div class="hb-pkg-name">Hibah Hartanah Komprehensif</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Full-service property hibah with trust structure</span>
+          <span class="bm">Hibah hartanah penuh dengan struktur amanah</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Services Included</span><span class="bm">Perkhidmatan Termasuk</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Hibah Trust Deed preparation</span><span class="bm">Penyediaan Surat Ikatan Amanah Hibah</span></li>
+            <li><span class="en">Akad hibah (physical or UsraHDD)</span><span class="bm">Akad hibah (fizikal atau UsraHDD)</span></li>
+            <li><span class="en">Land transfer (pindahmilik) handling</span><span class="bm">Pengurusan pindahmilik tanah</span></li>
+            <li><span class="en">Legal fees &amp; stamp duty covered</span><span class="bm">Yuran guaman &amp; duti setem termasuk</span></li>
+            <li><span class="en">Trustee service for recipients</span><span class="bm">Perkhidmatan pemegang amanah untuk penerima</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Key Benefits</span><span class="bm">Kelebihan Utama</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Recipient receives property directly — estate process resolved</span><span class="bm">Penerima terima hartanah terus — proses pusaka diselesaikan</span></li>
+            <li><span class="en">Arahan Tambahan (conditional instructions)</span><span class="bm">Arahan Tambahan (syarat pelengkap)</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-note">
+          💡 <span class="en">Must be combined with Al-Wasitah or a pusaka provision for complete estate coverage.</span>
+          <span class="bm">Wajib digabung dengan Al-Wasitah atau peruntukan pusaka untuk liputan pusaka lengkap.</span>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar">
+        <span class="en">Quote-based · Ask advisor</span>
+        <span class="bm">Sebutharga · Tanya penasihat</span>
+      </div>
+    </div>
+
+    <!-- 2. Hibah Amanah Hartanah -->
+    <div class="hb-pkg">
+      <div class="hb-pkg-header">
+        <div class="hb-pkg-type"><span class="en">Trust · Property</span><span class="bm">Amanah · Hartanah</span></div>
+        <div style="font-size:26px;margin:6px 0 4px;">📄</div>
+        <div class="hb-pkg-name">Hibah Amanah Hartanah</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Documentation-only property hibah</span>
+          <span class="bm">Hibah hartanah secara dokumentasi sahaja</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Services Included</span><span class="bm">Perkhidmatan Termasuk</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Hibah Trust Deed preparation</span><span class="bm">Penyediaan Surat Ikatan Amanah Hibah</span></li>
+            <li><span class="en">Akad hibah (physical or UsraHDD)</span><span class="bm">Akad hibah (fizikal atau UsraHDD)</span></li>
+            <li><span class="en">Legal documentation only</span><span class="bm">Dokumentasi guaman sahaja</span></li>
+            <li class="warn"><span class="en">Land transfer (<em>pindahmilik</em>) handled by recipient</span><span class="bm">Pindahmilik oleh penerima sendiri</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Best For</span><span class="bm">Sesuai Untuk</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Those who want documentation first</span><span class="bm">Mereka yang utamakan dokumentasi dahulu</span></li>
+            <li><span class="en">Recipients who handle <em>pindahmilik</em> themselves</span><span class="bm">Penerima yang urus pindahmilik sendiri</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-note">
+          💡 <span class="en">Lower upfront cost, but recipient bears legal costs later. Consider <em>Komprehensif</em> for full protection.</span>
+          <span class="bm">Kos lebih rendah, tetapi penerima tanggung kos guaman kemudian. Pertimbangkan Komprehensif untuk perlindungan penuh.</span>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar teal">
+        <span class="en">Quote-based · Ask advisor</span>
+        <span class="bm">Sebutharga · Tanya penasihat</span>
+      </div>
+    </div>
+
+    <!-- 3. Pra Hibah -->
+    <div class="hb-pkg">
+      <div class="hb-pkg-header">
+        <div class="hb-pkg-type"><span class="en">Preparatory · Property</span><span class="bm">Persediaan · Hartanah</span></div>
+        <div style="font-size:26px;margin:6px 0 4px;">🔏</div>
+        <div class="hb-pkg-name">Pra Hibah</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Preliminary hibah for mortgaged properties</span>
+          <span class="bm">Hibah persediaan untuk hartanah bergadai</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Services Included</span><span class="bm">Perkhidmatan Termasuk</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Letter of intent to hibah</span><span class="bm">Surat niat untuk hibah</span></li>
+            <li><span class="en">Pre-hibah agreement drafting</span><span class="bm">Draf perjanjian pra-hibah</span></li>
+            <li><span class="en">Conversion to full hibah once loan cleared</span><span class="bm">Tukar kepada hibah penuh selepas pinjaman selesai</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Ideal For</span><span class="bm">Sesuai Untuk</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Properties with active mortgage</span><span class="bm">Hartanah dengan pinjaman aktif</span></li>
+            <li><span class="en">Those planning future hibah</span><span class="bm">Mereka yang merancang hibah masa depan</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar purple">
+        <span class="en">Quote-based · Ask advisor</span>
+        <span class="bm">Sebutharga · Tanya penasihat</span>
+      </div>
+    </div>
+
+    <!-- 4. Tabung Haji / Saham / AHB -->
+    <div class="hb-pkg">
+      <div class="hb-pkg-header">
+        <div class="hb-pkg-type"><span class="en">Movable · TH &amp; Investment</span><span class="bm">Aset Alih · TH &amp; Pelaburan</span></div>
+        <div style="font-size:26px;margin:6px 0 4px;">💰</div>
+        <div class="hb-pkg-name">Hibah Tabung Haji,<br>Saham Amanah &amp; AHB</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Hibah for movable financial assets</span>
+          <span class="bm">Hibah untuk aset kewangan alih</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Products Covered</span><span class="bm">Produk Diliputi</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Tabung Haji — Bersyarat / Mutlak</span><span class="bm">Tabung Haji — Bersyarat / Mutlak</span></li>
+            <li><span class="en">ASB / ASN / ASNB Unit Trust</span><span class="bm">ASB / ASN / Saham Amanah ASNB</span></li>
+            <li><span class="en">AHB Private Mandate</span><span class="bm">AHB Private Mandate</span></li>
+            <li><span class="en">Other eligible unit trust funds</span><span class="bm">Dana unit amanah lain yang layak</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Key Features</span><span class="bm">Ciri-Ciri Utama</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Direct, planned transfer — estate process resolved at source</span><span class="bm">Pindahan terancang dan terus — proses pusaka diselesaikan dari punca</span></li>
+            <li><span class="en">Conditional hibah — reverts if recipient dies first</span><span class="bm">Hibah bersyarat — kembali jika penerima meninggal dahulu</span></li>
+            <li><span class="en">Arahan Tambahan supported</span><span class="bm">Arahan Tambahan disokong</span></li>
+            <li><span class="en">Combines well with Al-Wasitah</span><span class="bm">Sesuai digabung dengan Al-Wasitah</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-note">
+          💡 <span class="en">Best for those who want TH balance or unit trusts to go directly to heirs without probate delays.</span>
+          <span class="bm">Sesuai untuk mereka yang mahu baki TH atau saham amanah terus kepada waris tanpa kelewatan pusaka.</span>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar blue">
+        <span class="en">Quote-based · Ask advisor</span>
+        <span class="bm">Sebutharga · Tanya penasihat</span>
+      </div>
+    </div>
+
+  </div><!-- end hb-pkg-grid -->
+
+  <!-- AL-WASITAH SECTION -->
+  <h2 class="hb-section-title">🛡️ <span class="en">Al-Wasitah by Wasiyyah Shoppe</span><span class="bm">Al-Wasitah oleh Wasiyyah Shoppe</span></h2>
+  <p class="hb-section-sub">
+    <span class="en">Full estate management — lifetime planning + post-death execution. From RM65/month.</span>
+    <span class="bm">Pengurusan harta penuh — perancangan semasa hidup + pelaksanaan selepas kematian. Dari RM65/bulan.</span>
+  </p>
+
+  <!-- What is Al-Wasitah -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;border-left:4px solid var(--gold);">
+    <h4 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--dark);margin-bottom:8px;">
+      <span class="en">What is Al-Wasitah?</span><span class="bm">Apakah Al-Wasitah?</span>
+    </h4>
+    <p style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:10px;">
+      <span class="en">Al-Wasitah is a comprehensive estate management subscription — not just a will or a document. It covers all 3 stages: planning while you're alive (P1), administration after death (P2), and full distribution to your heirs (P3). Your family pays nothing extra — it's all covered under your monthly subscription.</span>
+      <span class="bm">Al-Wasitah ialah langganan pengurusan harta yang komprehensif — bukan sekadar wasiat atau dokumen. Ia merangkumi 3 peringkat: perancangan semasa hidup (P1), pentadbiran selepas kematian (P2), dan pengagihan penuh kepada waris (P3). Keluarga anda tidak perlu bayar tambahan — semuanya diliputi di bawah langganan bulanan anda.</span>
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="background:var(--gold-light);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--amber);font-weight:600;">
+        <span class="en">✓ Without Al-Wasitah: 5–10 years &amp; RM100k+ in costs</span>
+        <span class="bm">✓ Tanpa Al-Wasitah: 5–10 tahun &amp; kos RM100k+</span>
+      </div>
+      <div style="background:var(--teal-light);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--teal);font-weight:600;">
+        <span class="en">✓ With Al-Wasitah: 3–12 months, family pays RM0</span>
+        <span class="bm">✓ Dengan Al-Wasitah: 3–12 bulan, keluarga bayar RM0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mutiara vs Berlian cards -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+
+    <!-- Mutiara -->
+    <div class="hb-pkg" style="border:2px solid var(--gold);">
+      <div class="hb-pkg-header" style="background:var(--teal);position:relative;">
+        <div class="hb-pkg-type"><span class="en">Subscription · Estate Mgmt</span><span class="bm">Langganan · Pengurusan Harta</span></div>
+        <div class="hb-pkg-name">Al-Wasitah Mutiara</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Complete estate management from RM65/mo</span>
+          <span class="bm">Pengurusan harta lengkap dari RM65/bulan</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Pricing by Age</span><span class="bm">Harga Mengikut Umur</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Age 18–45: <strong>RM65/mo</strong> (RM50 ops + RM15 tabarru')</span><span class="bm">Umur 18–45: <strong>RM65/bulan</strong> (RM50 ops + RM15 tabarru')</span></li>
+            <li><span class="en">Age 46–60: <strong>RM80/mo</strong> (RM50 ops + RM30 tabarru')</span><span class="bm">Umur 46–60: <strong>RM80/bulan</strong> (RM50 ops + RM30 tabarru')</span></li>
+            <li><span class="en">Subject to 8% SST · Max 15 years (180 months)</span><span class="bm">Tertakluk kepada 8% SST · Maks 15 tahun (180 bulan)</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Coverage</span><span class="bm">Liputan</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Estate planning &amp; documentation (lifetime)</span><span class="bm">Perancangan &amp; dokumentasi harta (semasa hidup)</span></li>
+            <li><span class="en">P1 — Authority acquisition (ARB / Pusaka Kecil / High Court)</span><span class="bm">P1 — Perolehan kuasa (ARB / Pusaka Kecil / Mahkamah Tinggi)</span></li>
+            <li><span class="en">P2 — Estate administration, debt settlement, unfreezing</span><span class="bm">P2 — Pentadbiran pusaka, penyelesaian hutang, nyahbeku aset</span></li>
+            <li><span class="en">P3 — Full distribution: Hibah, Wasiat, Faraid execution</span><span class="bm">P3 — Pengagihan penuh: Hibah, Wasiat, perlaksanaan Faraid</span></li>
+            <li><span class="en">Service capped at RM11,700 total (max 15 yrs)</span><span class="bm">Kos perkhidmatan dihadkan pada RM11,700 (maks 15 tahun)</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-note">
+          💡 <span class="en">Best for individuals and families wanting complete peace of mind. Most affordable entry point.</span>
+          <span class="bm">Sesuai untuk individu dan keluarga yang mahukan ketenangan fikiran yang lengkap. Titik masuk paling berpatutan.</span>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar teal">
+        <span class="en">From RM65/mo · Sign up today</span>
+        <span class="bm">Dari RM65/bulan · Daftar hari ini</span>
+      </div>
+    </div>
+
+    <!-- Berlian -->
+    <div class="hb-pkg">
+      <div class="hb-pkg-header" style="background:var(--wsb-blue);">
+        <div class="hb-pkg-type"><span class="en">Subscription · Premium</span><span class="bm">Langganan · Premium</span></div>
+        <div class="hb-pkg-name">Al-Wasitah Berlian</div>
+        <div class="hb-pkg-tagline">
+          <span class="en">Premium coverage for complex or high-value estates</span>
+          <span class="bm">Liputan premium untuk harta bernilai tinggi atau kompleks</span>
+        </div>
+      </div>
+      <div class="hb-pkg-body">
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Pricing by Age</span><span class="bm">Harga Mengikut Umur</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">Age 18–45: <strong>RM175/mo</strong> (RM145 ops + RM30 tabarru')</span><span class="bm">Umur 18–45: <strong>RM175/bulan</strong> (RM145 ops + RM30 tabarru')</span></li>
+            <li><span class="en">Age 46–60: <strong>RM190/mo</strong> (RM145 ops + RM45 tabarru')</span><span class="bm">Umur 46–60: <strong>RM190/bulan</strong> (RM145 ops + RM45 tabarru')</span></li>
+            <li><span class="en">Subject to 8% SST · Max 15 years (180 months)</span><span class="bm">Tertakluk kepada 8% SST · Maks 15 tahun (180 bulan)</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-section">
+          <div class="hb-pkg-section-title"><span class="en">Additional Benefits</span><span class="bm">Manfaat Tambahan</span></div>
+          <ul class="hb-pkg-list">
+            <li><span class="en">All Mutiara benefits included</span><span class="bm">Semua manfaat Mutiara termasuk</span></li>
+            <li><span class="en">Higher coverage for complex &amp; multi-asset estates</span><span class="bm">Liputan lebih tinggi untuk harta pelbagai aset</span></li>
+            <li><span class="en">Suitable for business owners &amp; high-net-worth clients</span><span class="bm">Sesuai untuk pemilik perniagaan &amp; pelanggan bernilai tinggi</span></li>
+            <li><span class="en">Service capped at RM31,500 total (max 15 yrs)</span><span class="bm">Kos perkhidmatan dihadkan pada RM31,500 (maks 15 tahun)</span></li>
+          </ul>
+        </div>
+        <div class="hb-pkg-note">
+          💡 <span class="en">Ideal for those with properties, businesses, or complex asset portfolios needing more comprehensive management.</span>
+          <span class="bm">Sesuai untuk mereka yang mempunyai hartanah, perniagaan atau portfolio aset kompleks yang memerlukan pengurusan lebih komprehensif.</span>
+        </div>
+      </div>
+      <div class="hb-pkg-price-bar blue">
+        <span class="en">From RM175/mo · Premium plan</span>
+        <span class="bm">Dari RM175/bulan · Pelan premium</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Al-Wasitah CTA -->
+  <div class="cta" style="margin-bottom:40px;">
+    <div class="cta-left">
+      <div class="cta-tag"><span class="en">🛡️ Start your Al-Wasitah subscription</span><span class="bm">🛡️ Mulakan langganan Al-Wasitah anda</span></div>
+      <div class="cta-title"><span class="en">Protect your family from RM65/month</span><span class="bm">Lindungi keluarga anda dari RM65/bulan</span></div>
+      <div class="cta-sub">
+        <span class="en">Don't leave your family with a 5–10 year legal process. Al-Wasitah handles everything — so they don't have to.</span>
+        <span class="bm">Jangan tinggalkan keluarga anda dengan proses undang-undang 5–10 tahun. Al-Wasitah uruskan semuanya — supaya mereka tidak perlu.</span>
+      </div>
+    </div>
+    <a href="https://wa.me/60173335664?text=Assalamualaikum%20Shakina%2C%20saya%20berminat%20dengan%20Al-Wasitah.%20Boleh%20terangkan%20lebih%20lanjut%3F" class="cta-right">
+      <span class="en">Sign Up / Enquire</span><span class="bm">Daftar / Tanya Lebih Lanjut</span>
+      <div class="cta-plan">WhatsApp · 017-333 5664</div>
+    </a>
+  </div>
+
+  <!-- Separator before Hibah -->
+  <div style="border-top:2px dashed var(--border);margin:8px 0 36px;position:relative;text-align:center;">
+    <span style="position:relative;top:-11px;background:#FAF8F3;padding:0 16px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">
+      <span class="en">Also available — Hibah Services</span>
+      <span class="bm">Juga tersedia — Perkhidmatan Hibah</span>
+    </span>
+  </div>
+
+  <!-- DOCUMENTS REQUIRED -->
+  <h2 class="hb-section-title">📁 <span class="en">Documents Required</span><span class="bm">Dokumen Diperlukan</span></h2>
+  <p class="hb-section-sub">
+    <span class="en">Prepare these documents before your akad session</span>
+    <span class="bm">Sediakan dokumen ini sebelum sesi akad anda</span>
+  </p>
+
+  <div class="hb-docs-grid">
+    <div class="hb-docs-card">
+      <h5><span class="en">Identity (All Packages)</span><span class="bm">Pengenalan (Semua Pakej)</span></h5>
+      <ul>
+        <li><span class="en">NRIC / MyKad (giver)</span><span class="bm">IC / MyKad (pemberi)</span></li>
+        <li><span class="en">NRIC copies (recipients)</span><span class="bm">Salinan IC (penerima)</span></li>
+        <li><span class="en">Marriage cert (if applicable)</span><span class="bm">Sijil nikah (jika berkaitan)</span></li>
+      </ul>
+    </div>
+    <div class="hb-docs-card">
+      <h5><span class="en">Property (Hartanah)</span><span class="bm">Hartanah</span></h5>
+      <ul>
+        <li><span class="en">Land grant / title</span><span class="bm">Geran tanah</span></li>
+        <li><span class="en">Sale &amp; Purchase Agreement</span><span class="bm">Perjanjian Jual Beli</span></li>
+        <li><span class="en">Loan statement (if mortgaged)</span><span class="bm">Penyata pinjaman (jika bergadai)</span></li>
+        <li><span class="en">Quit rent &amp; assessment receipts</span><span class="bm">Resit cukai tanah &amp; taksiran</span></li>
+      </ul>
+    </div>
+    <div class="hb-docs-card">
+      <h5><span class="en">TH / Shares</span><span class="bm">TH / Saham</span></h5>
+      <ul>
+        <li><span class="en">TH account statement</span><span class="bm">Penyata akaun TH</span></li>
+        <li><span class="en">ASB / ASN certificates</span><span class="bm">Sijil ASB / ASN</span></li>
+        <li><span class="en">Unit trust account details</span><span class="bm">Butiran akaun unit amanah</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FINAL CTA -->
+  <div class="cta" style="margin-top:30px;">
+    <div class="cta-left">
+      <div class="cta-tag"><span class="en">🎁 I'm interested in Hibah planning</span><span class="bm">🎁 Saya berminat dengan perancangan Hibah</span></div>
+      <div class="cta-title"><span class="en">Get a Personalised Hibah Quote</span><span class="bm">Dapatkan Sebutharga Hibah Peribadi</span></div>
+      <div class="cta-sub">
+        <span class="en">Tell us about your assets and we'll recommend the right package for your situation.</span>
+        <span class="bm">Beritahu kami tentang aset anda dan kami akan cadangkan pakej yang sesuai untuk anda.</span>
+      </div>
+    </div>
+    <a href="https://wa.me/60173335664?text=Hi,%20I%20reviewed%20the%20Hibah%20packages%20and%20would%20like%20to%20get%20a%20personalised%20quote%20for%20my%20assets." class="cta-right">
+      <span class="en">Request My Quote</span><span class="bm">Minta Sebutharga Saya</span>
+      <div class="cta-plan">WhatsApp · 017-333 5664</div>
+    </a>
+  </div>
+
+</div>
+</div><!-- end panel-hibah -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MASTER FOOTER
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="master-footer">
+  <div class="brand">Wasiyyah <span>Shoppe</span> Berhad</div>
+  <div class="contact">
+    <span class="en">Islamic Estate Planning Specialist</span><span class="bm">Pakar Perancangan Harta Islam</span>
+    · <a href="https://wa.me/60173335664">017-333 5664</a>
+  </div>
+  <div class="disclaimer">
+    <span class="en">This suite is for educational and reference purposes only. For personalised estate planning advice, contact a qualified WSB advisor. Faraid calculations follow Shafi'i jurisprudence; package details and pricing subject to change.</span>
+    <span class="bm">Suite ini adalah untuk tujuan pendidikan dan rujukan sahaja. Untuk nasihat perancangan harta yang diperibadikan, hubungi penasihat WSB berlesen. Pengiraan Faraid mengikut mazhab Shafi'i; butiran pakej dan harga tertakluk kepada perubahan.</span>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   TAB + LANG CONTROLLERS
+   ══════════════════════════════════════════════════════════════════════ */
+function setLang(l) {
+  document.body.setAttribute('data-lang', l);
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-ms').classList.toggle('active', l === 'ms');
+  try { localStorage.setItem('wsb-lang', l); } catch(e) {}
+}
+
+function setTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try { localStorage.setItem('wsb-tab', id); } catch(e) {}
+}
+
+// Restore last state
+try {
+  const savedLang = localStorage.getItem('wsb-lang');
+  if (savedLang) setLang(savedLang);
+  const savedTab = localStorage.getItem('wsb-tab');
+  if (savedTab && ['flow','faraid','hibah'].includes(savedTab)) setTab(savedTab);
+} catch(e) {}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FARAID CALCULATOR ENGINE
+   ══════════════════════════════════════════════════════════════════════ */
+
+// Exact fraction arithmetic
+class F {
+  constructor(n, d=1) {
+    if (d === 0) throw new Error('div0');
+    if (d < 0) { n = -n; d = -d; }
+    const g = F.gcd(Math.abs(n), Math.abs(d));
+    this.n = n / g; this.d = d / g;
+  }
+  static gcd(a, b) { return b === 0 ? a : F.gcd(b, a % b); }
+  add(o) { return new F(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { return new F(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { return new F(this.n * o.n, this.d * o.d); }
+  div(o) { return new F(this.n * o.d, this.d * o.n); }
+  toNum() { return this.n / this.d; }
+  toStr() {
+    if (this.n === 0) return '0';
+    if (this.d === 1) return String(this.n);
+    return this.n + '/' + this.d;
+  }
+}
+const _0 = new F(0), _1 = new F(1);
+
+function fcFormatRM(n) {
+  return 'RM ' + Math.round(n).toLocaleString('en-MY');
+}
+
+function fcUpdateNet() {
+  const gross = parseFloat(document.getElementById('fc-gross').value) || 0;
+  const funeral = parseFloat(document.getElementById('fc-funeral').value) || 0;
+  const debts = parseFloat(document.getElementById('fc-debts').value) || 0;
+  const wasiatInput = parseFloat(document.getElementById('fc-wasiat').value) || 0;
+  const hibah = parseFloat(document.getElementById('fc-hibah').value) || 0;
+  const sepencarian = parseFloat(document.getElementById('fc-sepencarian').value) || 0;
+  const adminPct = parseFloat(document.getElementById('fc-admin-pct').value) || 0;
+
+  const adminAmt = Math.round(gross * adminPct / 100);
+  const adminDisplay = document.getElementById('fc-admin-display');
+  if (adminDisplay && adminPct > 0 && gross > 0) {
+    adminDisplay.textContent = '= RM ' + adminAmt.toLocaleString('en-MY');
+  } else if (adminDisplay) {
+    adminDisplay.textContent = '';
+  }
+
+  const postDebt = Math.max(0, gross - funeral - debts - adminAmt);
+  const wasiatCap = postDebt / 3;
+  const wasiat = Math.min(wasiatInput, wasiatCap);
+
+  const net = Math.max(0, postDebt - wasiat - hibah - sepencarian);
+  document.getElementById('fc-net-display').textContent = fcFormatRM(net);
+
+  // Warn if wasiat exceeds cap
+  const wasiatEl = document.getElementById('fc-wasiat');
+  if (wasiatInput > wasiatCap && wasiatCap > 0) {
+    wasiatEl.style.borderColor = 'var(--coral)';
+    wasiatEl.title = 'Capped at 1/3: RM ' + Math.round(wasiatCap).toLocaleString();
+  } else {
+    wasiatEl.style.borderColor = '';
+    wasiatEl.title = '';
+  }
+
+  return net;
+}
+
+function fcSetMaxWasiat() {
+  const gross = parseFloat(document.getElementById('fc-gross').value) || 0;
+  const funeral = parseFloat(document.getElementById('fc-funeral').value) || 0;
+  const debts = parseFloat(document.getElementById('fc-debts').value) || 0;
+  const adminPct = parseFloat(document.getElementById('fc-admin-pct').value) || 0;
+  const adminAmt = Math.round(gross * adminPct / 100);
+  const postDebt = Math.max(0, gross - funeral - debts - adminAmt);
+  const wasiatCap = Math.floor(postDebt / 3);
+  document.getElementById('fc-wasiat').value = wasiatCap > 0 ? wasiatCap : '';
+  fcUpdateNet();
+}
+
+function fcGoto(step) {
+  document.querySelectorAll('[id^="fc-card-"]').forEach((c, i) => {
+    c.style.display = (i + 1 === step) ? 'block' : 'none';
+  });
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('fc-step-' + i);
+    el.classList.remove('active', 'done');
+    if (i === step) el.classList.add('active');
+    else if (i < step) el.classList.add('done');
+  }
+  window.scrollTo({ top: document.querySelector('.fc-header').offsetTop - 100, behavior: 'smooth' });
+}
+
+function fcGetHeirs() {
+  return {
+    husband: document.getElementById('fc-h-husband').checked ? 1 : 0,
+    wife: Math.max(0, parseInt(document.getElementById('fc-h-wife').value) || 0),
+    father: document.getElementById('fc-h-father').checked ? 1 : 0,
+    mother: document.getElementById('fc-h-mother').checked ? 1 : 0,
+    son: Math.max(0, parseInt(document.getElementById('fc-h-son').value) || 0),
+    daughter: Math.max(0, parseInt(document.getElementById('fc-h-daughter').value) || 0),
+    brother: Math.max(0, parseInt(document.getElementById('fc-h-brother').value) || 0),
+    sister: Math.max(0, parseInt(document.getElementById('fc-h-sister').value) || 0),
+  };
+}
+
+function fcCompute(h) {
+  const hasChild = (h.son + h.daughter) > 0;
+  const hasSon = h.son > 0;
+  const shares = {}; // heir -> { type, share (F), count }
+
+  // ── FARDH (Fixed) ──
+  // Husband
+  if (h.husband) {
+    shares.husband = { type: 'fardh', share: hasChild ? new F(1,4) : new F(1,2), count: 1 };
+  }
+  // Wife/wives (share equally)
+  if (h.wife > 0) {
+    shares.wife = { type: 'fardh', share: hasChild ? new F(1,8) : new F(1,4), count: h.wife };
+  }
+  // Mother
+  if (h.mother) {
+    let mShare;
+    if (hasChild || (h.brother + h.sister) >= 2) mShare = new F(1,6);
+    else mShare = new F(1,3);
+    shares.mother = { type: 'fardh', share: mShare, count: 1 };
+  }
+  // Father
+  if (h.father) {
+    if (hasSon) {
+      shares.father = { type: 'fardh', share: new F(1,6), count: 1 };
+    } else if (h.daughter > 0) {
+      // 1/6 fardh + residue as asabah
+      shares.father = { type: 'fardh+asabah', share: new F(1,6), count: 1 };
+    } else {
+      shares.father = { type: 'asabah', share: _0, count: 1 };
+    }
+  }
+
+  // Daughters without sons
+  if (h.daughter > 0 && !hasSon) {
+    const dShare = h.daughter === 1 ? new F(1,2) : new F(2,3);
+    shares.daughter = { type: 'fardh', share: dShare, count: h.daughter };
+  }
+
+  // ── HIJAB — siblings blocked by son or father ──
+  const siblingsBlocked = hasSon || h.father === 1;
+  if (!siblingsBlocked && (h.brother + h.sister) > 0) {
+    if (h.brother === 0 && h.sister > 0) {
+      // Sisters alone, no son, no father
+      const sShare = h.sister === 1 ? new F(1,2) : new F(2,3);
+      shares.sister = { type: 'fardh', share: sShare, count: h.sister };
+    }
+    // If brothers present, they become asabah (handled in residue)
+  }
+
+  // ── SUM FARDH ──
+  let fardhTotal = _0;
+  for (const k in shares) fardhTotal = fardhTotal.add(shares[k].share);
+
+  // ── AWL ──
+  let awlApplied = false;
+  if (fardhTotal.toNum() > 1) {
+    awlApplied = true;
+    const factor = new F(_1.n * fardhTotal.d, _1.d * fardhTotal.n);
+    for (const k in shares) {
+      if (shares[k].type === 'fardh' || shares[k].type === 'fardh+asabah') {
+        shares[k].share = shares[k].share.mul(factor);
+      }
+    }
+    fardhTotal = _1;
+  }
+
+  // ── RESIDUE (ASABAH) ──
+  let residue = _1.sub(fardhTotal);
+
+  if (residue.toNum() > 0) {
+    // Priority: sons (with daughters if present), then father (if no son), then brothers
+    if (hasSon) {
+      // Sons and daughters share residue 2:1 — store COLLECTIVE shares
+      const units = h.son * 2 + h.daughter;
+      // sons collective = 2*son / units of residue
+      shares.son = { type: 'asabah', share: new F(residue.n * h.son * 2, residue.d * units), count: h.son };
+      if (h.daughter > 0) {
+        shares.daughter = { type: 'asabah', share: new F(residue.n * h.daughter, residue.d * units), count: h.daughter };
+      }
+      residue = _0;
+    } else if (shares.father && shares.father.type === 'fardh+asabah') {
+      shares.father.share = shares.father.share.add(residue);
+      residue = _0;
+    } else if (shares.father && shares.father.type === 'asabah') {
+      shares.father.share = shares.father.share.add(residue);
+      residue = _0;
+    } else if (!siblingsBlocked && h.brother > 0) {
+      // Brothers (and sisters) share residue 2:1 — collective shares
+      const units = h.brother * 2 + h.sister;
+      shares.brother = { type: 'asabah', share: new F(residue.n * h.brother * 2, residue.d * units), count: h.brother };
+      if (h.sister > 0) {
+        shares.sister = { type: 'asabah', share: new F(residue.n * h.sister, residue.d * units), count: h.sister };
+      }
+      residue = _0;
+    }
+  }
+
+  // ── RADD — return residue to fardh heirs (excluding spouse) ──
+  let raddApplied = false;
+  let baitulmalApplied = false;
+  if (residue.toNum() > 0) {
+    const raddHeirs = Object.keys(shares).filter(k => k !== 'husband' && k !== 'wife'
+      && (shares[k].type === 'fardh' || shares[k].type === 'fardh+asabah'));
+    if (raddHeirs.length > 0) {
+      raddApplied = true;
+      let raddBase = _0;
+      raddHeirs.forEach(k => { raddBase = raddBase.add(shares[k].share); });
+      raddHeirs.forEach(k => {
+        const proportion = shares[k].share.div(raddBase);
+        const extra = residue.mul(proportion);
+        shares[k].share = shares[k].share.add(extra);
+      });
+      residue = _0;
+    } else if (Object.keys(shares).filter(k => k === 'husband' || k === 'wife').length > 0) {
+      // Only spouse(s) — residue after spouse fardh goes to Baitulmal (no radd to spouse)
+      baitulmalApplied = true;
+      shares.baitulmal = { type: 'baitulmal', share: residue, count: 1 };
+      residue = _0;
+    } else {
+      // No fardh heirs at all who qualify for radd — Baitulmal
+      baitulmalApplied = true;
+      shares.baitulmal = { type: 'baitulmal', share: residue, count: 1 };
+      residue = _0;
+    }
+  }
+
+  return { shares, residue, awlApplied, raddApplied, baitulmalApplied };
+}
+
+const fcHeirLabels = {
+  husband: { en: 'Husband', bm: 'Suami' },
+  wife: { en: 'Wife', bm: 'Isteri' },
+  father: { en: 'Father', bm: 'Bapa' },
+  mother: { en: 'Mother', bm: 'Ibu' },
+  son: { en: 'Sons', bm: 'Anak Lelaki' },
+  daughter: { en: 'Daughters', bm: 'Anak Perempuan' },
+  brother: { en: 'Brothers', bm: 'Adik-beradik Lelaki' },
+  sister: { en: 'Sisters', bm: 'Adik-beradik Perempuan' },
+  baitulmal: { en: 'Baitulmal (State)', bm: 'Baitulmal (Negeri)' },
+};
+
+function fcCalculate() {
+  const gross = parseFloat(document.getElementById('fc-gross').value) || 0;
+  if (gross <= 0) {
+    alert(document.body.dataset.lang === 'ms'
+      ? 'Sila masukkan nilai pusaka kasar di Langkah 1.'
+      : 'Please enter the gross estate value in Step 1.');
+    fcGoto(1); return;
+  }
+
+  const net = fcUpdateNet();
+
+  const h = fcGetHeirs();
+  const heirCount = Object.values(h).reduce((a,b) => a+b, 0);
+  if (heirCount === 0) {
+    alert(document.body.dataset.lang === 'ms'
+      ? 'Sila pilih sekurang-kurangnya seorang waris.'
+      : 'Please select at least one heir.');
+    return;
+  }
+
+  const result = fcCompute(h);
+  fcRender(result, net);
+  fcGoto(3);
+}
+
+function fcRender(result, net) {
+  document.getElementById('fc-res-total').textContent = fcFormatRM(net);
+  const tbody = document.getElementById('fc-res-tbody');
+  tbody.innerHTML = '';
+
+  const lang = document.body.dataset.lang || 'ms';
+
+  for (const k of ['husband','wife','father','mother','son','daughter','brother','sister','baitulmal']) {
+    const s = result.shares[k];
+    if (!s || s.share.toNum() <= 0) continue;
+    // share is COLLECTIVE (total for the group)
+    const pct = s.share.toNum() * 100;
+    const totalAmt = s.share.toNum() * net;
+    const perHead = s.count > 1 ? totalAmt / s.count : totalAmt;
+    const countLabel = s.count > 1 ? ' × ' + s.count : '';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>
+        <strong>${fcHeirLabels[k][lang]}</strong>${countLabel}
+        ${s.count > 1 ? `<div style="font-size:10px;color:var(--muted);">${fcFormatRM(perHead)} ${lang==='ms'?'setiap satu':'each'}</div>` : ''}
+      </td>
+      <td class="fc-heir-share-frac">${s.share.toStr()}</td>
+      <td>${pct.toFixed(2)}%</td>
+      <td class="fc-heir-amt">${fcFormatRM(totalAmt)}</td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  // Notes
+  const notesDiv = document.getElementById('fc-res-notes');
+  const notes = [];
+  if (result.awlApplied) {
+    notes.push(lang === 'ms'
+      ? '<strong>Awl (العول) dikenakan:</strong> Jumlah bahagian fardh melebihi harta — semua bahagian dikurangkan secara berkadar supaya jumlah sama dengan 100%.'
+      : '<strong>Awl (العول) applied:</strong> Combined fardh shares exceeded the estate — all shares were reduced proportionally so the total equals 100%.');
+  }
+  if (result.raddApplied) {
+    notes.push(lang === 'ms'
+      ? '<strong>Radd dikenakan:</strong> Baki dikembalikan secara berkadar kepada waris fardh (tidak termasuk pasangan).'
+      : '<strong>Radd applied:</strong> Residue returned proportionally to fardh heirs (excluding spouse).');
+  }
+  if (result.baitulmalApplied) {
+    notes.push(lang === 'ms'
+      ? '<strong>Baitulmal:</strong> Tiada waris asabah yang layak — baki pusaka diserahkan kepada Baitulmal negeri mengikut undang-undang Islam Malaysia.'
+      : '<strong>Baitulmal:</strong> No eligible residuary heir — the remaining estate passes to the State Islamic Treasury (Baitulmal) under Malaysian Islamic law.');
+  }
+
+  notesDiv.innerHTML = notes.length
+    ? '<div class="fc-notes">' + notes.map(n => '<div style="margin-bottom:4px;">' + n + '</div>').join('') + '</div>'
+    : '';
+}
+
+// Initial net display
+document.addEventListener('DOMContentLoaded', fcUpdateNet);
+</script>
+
+</body>
+</html>
