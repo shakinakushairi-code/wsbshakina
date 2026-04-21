@@ -2176,11 +2176,13 @@ function fcCompute(h) {
     }
   }
 
-  // ── RADD — return residue to fardh heirs (excluding spouse) ──
+  // ── RADD — return residue to eligible fardh heirs ONLY (father, mother — NOT spouse, NOT daughter/son) ──
+  // Per Malaysian MAIS / e-Faraid ruling: daughters do NOT receive Radd. Residue goes to Baitulmal.
   let raddApplied = false;
   let baitulmalApplied = false;
   if (residue.toNum() > 0) {
-    const raddHeirs = Object.keys(shares).filter(k => k !== 'husband' && k !== 'wife'
+    const raddEligible = ['father','mother']; // only these qualify for Radd under Malaysian ruling
+    const raddHeirs = Object.keys(shares).filter(k => raddEligible.includes(k)
       && (shares[k].type === 'fardh' || shares[k].type === 'fardh+asabah'));
     if (raddHeirs.length > 0) {
       raddApplied = true;
@@ -2193,7 +2195,7 @@ function fcCompute(h) {
       });
       residue = _0;
     } else if (Object.keys(shares).filter(k => k === 'husband' || k === 'wife').length > 0) {
-      // Only spouse(s) — residue after spouse fardh goes to Baitulmal (no radd to spouse)
+      // Residue goes to Baitulmal — daughters/sons do not receive Radd under Malaysian MAIS ruling
       baitulmalApplied = true;
       shares.baitulmal = { type: 'baitulmal', share: residue, count: 1 };
       residue = _0;
@@ -2284,13 +2286,13 @@ function fcRender(result, net) {
   }
   if (result.raddApplied) {
     notes.push(lang === 'ms'
-      ? '<strong>Radd dikenakan:</strong> Baki dikembalikan secara berkadar kepada waris fardh (tidak termasuk pasangan).'
-      : '<strong>Radd applied:</strong> Residue returned proportionally to fardh heirs (excluding spouse).');
+      ? '<strong>Radd dikenakan:</strong> Baki pusaka dikembalikan kepada ibu/bapa (waris yang layak menerima Radd mengikut undang-undang Malaysia).'
+      : '<strong>Radd applied:</strong> Residue returned to mother/father — the only heirs eligible for Radd under Malaysian law.');
   }
   if (result.baitulmalApplied) {
     notes.push(lang === 'ms'
-      ? '<strong>Baitulmal:</strong> Tiada waris asabah yang layak — baki pusaka diserahkan kepada Baitulmal negeri mengikut undang-undang Islam Malaysia.'
-      : '<strong>Baitulmal:</strong> No eligible residuary heir — the remaining estate passes to the State Islamic Treasury (Baitulmal) under Malaysian Islamic law.');
+      ? '<strong>Baitulmal:</strong> Mengikut e-Faraid MAIS, baki pusaka diserahkan kepada Baitulmal negeri. Anak perempuan/lelaki tidak menerima Radd — bahagian mereka adalah fardh sahaja.'
+      : '<strong>Baitulmal:</strong> Per Malaysian MAIS / e-Faraid ruling, the residue passes to the State Islamic Treasury (Baitulmal). Daughters and sons do not receive Radd — their entitlement is fardh only.');
   }
 
   notesDiv.innerHTML = notes.length
